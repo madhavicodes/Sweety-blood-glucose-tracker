@@ -64,7 +64,7 @@ beforeAll(async () => {
   }
 
   if (!hasRealPostgres) {
-    // High-performance in-memory PostgreSQL
+    // High-performance in-memory PostgreSQL emulator
     isMemoryDb = true;
     const memDb = newDb({
       autoCreateForeignKeyIndices: true
@@ -75,6 +75,18 @@ beforeAll(async () => {
       args: [memDb.public.getType('text')],
       returns: memDb.public.getType('text'),
       implementation: (str) => (str ? str.toLowerCase() : str)
+    });
+
+    // Register PostgreSQL round(numeric, integer) function for pg-mem
+    memDb.public.registerFunction({
+      name: 'round',
+      args: [memDb.public.getType('float'), memDb.public.getType('int')],
+      returns: memDb.public.getType('float'),
+      implementation: (val, decimals) => {
+        if (val === null || val === undefined) return null;
+        const factor = Math.pow(10, decimals || 0);
+        return Math.round(Number(val) * factor) / factor;
+      }
     });
 
     testKnex = memDb.adapters.createKnex();
