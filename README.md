@@ -1,66 +1,115 @@
 # Sweety – Blood Glucose Tracker (PERN Stack)
 
-Sweety is a blood glucose tracking web application designed for diabetes patients to record up to 4 readings per day (mg/dl), edit or delete them, and view reports (Daily, Month-to-date, Monthly).
+Sweety is a blood glucose tracking web application designed for diabetes patients to record up to 4 readings per day (mg/dl), edit or delete them, and view three real-time reports: **Daily**, **Month-to-date**, and **Monthly** (previous month).
 
-> **Stack Note:** While often referred to in MERN templates, the database is PostgreSQL, making this architecture truly **PERN** (PostgreSQL, Express, React, Node.js).
+> **Architecture Stack:** PostgreSQL 16 + Express 4 + React 18 (Vite) + Node.js 20 LTS (**PERN**).
 
 ---
 
-## Repository Structure
+## Repository Structure (Monorepo)
 
 ```text
 sweety/
-├── README.md                  # Complete project documentation and API guide
-├── .gitignore                 # Root gitignore
-├── .env.example               # Root environment template (used by docker-compose)
-├── docker-compose.yml         # Local PostgreSQL container service
-├── server/
-│   ├── package.json           # Backend dependencies and scripts
-│   ├── .env.example           # Server environment template
-│   ├── .env                   # Local server environment configuration
-│   ├── knexfile.js            # Knex connection & migration config
-│   ├── migrations/            # Database schema migrations
-│   │   ├── 001_create_users.js
-│   │   └── 002_create_readings.js
+├── README.md                          # Complete setup, testing, and architecture guide
+├── .gitignore                         # Root gitignore
+├── .env.example                       # Root environment template (used by docker-compose)
+├── docker-compose.yml                 # Local PostgreSQL 16 container setup
+│
+├── server/                            # BACKEND API (Express + PostgreSQL + Knex)
+│   ├── package.json                   # Dependencies & scripts
+│   ├── .env.example                   # Server environment template
+│   ├── .env                           # Server local environment configuration
+│   ├── knexfile.js                    # Knex configuration (dev, test, prod)
+│   ├── migrations/                    # Database schema migrations
+│   │   ├── 001_create_users.js        # Users table + case-insensitive email index
+│   │   └── 002_create_readings.js     # Readings table + slot enum + 40-600 check
 │   ├── seeds/
-│   │   └── 001_demo_user.js   # Idempotent demo seed script
+│   │   └── 001_demo_user.js           # Idempotent demo user seed script
 │   ├── src/
-│   │   ├── server.js          # Startup listener & graceful shutdown
-│   │   ├── app.js             # Express app setup (exported for tests)
-│   │   ├── config/env.js      # Environment loader & validator
-│   │   ├── constants/slots.js # Canonical slot enum mappings and labels
-│   │   ├── db/knex.js         # Knex database client & proxy
+│   │   ├── server.js                  # App bootstrap, DB ping & graceful shutdown
+│   │   ├── app.js                     # Express app setup (exported for tests)
+│   │   ├── config/env.js              # Environment loader & validator
+│   │   ├── constants/slots.js         # Canonical slots mapping & UI labels
+│   │   ├── db/knex.js                 # Knex database client & query proxy
 │   │   ├── middleware/
-│   │   │   ├── requireAuth.js  # JWT Bearer authentication guard
-│   │   │   ├── validate.js     # Zod request validator
-│   │   │   ├── errorHandler.js # Standard error response formatter
-│   │   │   └── notFound.js     # 404 handler
+│   │   │   ├── requireAuth.js          # JWT Bearer token authentication guard
+│   │   │   ├── validate.js             # Zod schema validation middleware
+│   │   │   ├── errorHandler.js         # Standard error response formatter
+│   │   │   └── notFound.js             # 404 handler
 │   │   ├── repositories/
-│   │   │   ├── user.repository.js    # User SQL queries
-│   │   │   └── reading.repository.js # Reading SQL queries (userId-scoped)
+│   │   │   ├── user.repository.js      # User queries
+│   │   │   ├── reading.repository.js   # Reading queries (user-scoped)
+│   │   │   └── report.repository.js    # Aggregate statistical SQL query
 │   │   ├── services/
-│   │   │   ├── auth.service.js       # Auth logic (bcrypt, JWT, timing protection)
-│   │   │   └── reading.service.js    # Reading rules & transaction locking
+│   │   │   ├── auth.service.js         # Auth business logic (bcrypt, JWT)
+│   │   │   ├── reading.service.js      # Concurrency lock & domain rules
+│   │   │   └── report.service.js       # Date range resolutions & report aggregations
 │   │   ├── controllers/
-│   │   │   ├── auth.controller.js    # Auth HTTP response handler
-│   │   │   └── readings.controller.js# Readings HTTP response handler
+│   │   │   ├── auth.controller.js      # Auth HTTP handlers
+│   │   │   ├── readings.controller.js  # Readings HTTP handlers
+│   │   │   └── report.controller.js    # Reports HTTP handlers
 │   │   ├── routes/
-│   │   │   ├── auth.routes.js        # Auth route definitions
-│   │   │   ├── readings.routes.js    # Readings route definitions
-│   │   │   └── reports.routes.js     # Reports route definitions
+│   │   │   ├── auth.routes.js          # /api/auth routes
+│   │   │   ├── readings.routes.js      # /api/readings routes
+│   │   │   └── reports.routes.js       # /api/reports routes
 │   │   ├── validators/
-│   │   │   ├── auth.schema.js        # Auth Zod schemas
-│   │   │   └── reading.schema.js     # Reading Zod schemas
+│   │   │   ├── auth.schema.js          # Auth Zod schemas
+│   │   │   ├── reading.schema.js       # Reading Zod schemas
+│   │   │   └── report.schema.js        # Report Zod schemas
 │   │   └── utils/
-│   │       ├── AppError.js           # Custom operational error class
-│   │       ├── asyncHandler.js       # Route async wrapper
-│   │       ├── dates.js              # Timezone-safe date arithmetic & ranges
-│   │       └── jwt.js                # JWT sign and verify helpers
+│   │       ├── AppError.js             # Custom operational error class
+│   │       ├── asyncHandler.js         # Async error wrapper
+│   │       ├── dates.js                # Timezone & date range utilities
+│   │       └── jwt.js                  # JWT token helpers
 │   └── tests/
-│       ├── setup.js                  # Test database lifecycle & migration runner
-│       ├── auth.test.js              # Auth suite (registration, login, JWT)
-│       ├── readings.test.js          # Readings validation, CRUD & isolation suite
-│       └── dates.util.test.js        # Date ranges, leap year & rollover suite
+│       ├── setup.js                    # Test database lifecycle & migrations
+│       ├── auth.test.js                # Auth suite (register, login, timing leak)
+│       ├── readings.test.js            # Readings validation & isolation suite
+│       ├── reports.test.js             # Reports boundaries & statistics suite
+│       └── dates.util.test.js          # Pure date arithmetic & leap year suite
+│
+└── client/                            # FRONTEND SPA (React 18 + Vite + Tailwind)
+    ├── package.json                   # Client dependencies (React, Axios, Router, Lucide)
+    ├── vite.config.js                 # Vite configuration
+    ├── index.html                     # HTML entry point
+    ├── .env.example                   # Client environment template
+    ├── .env                           # Client local environment configuration
+    └── src/
+        ├── main.jsx                   # React root entry
+        ├── App.jsx                    # Router, AuthProvider & layout
+        ├── api/
+        │   ├── axiosClient.js         # Axios instance with JWT interceptor & 401 handler
+        │   ├── auth.api.js            # Auth endpoints
+        │   ├── readings.api.js        # Readings CRUD endpoints
+        │   └── reports.api.js         # Daily, Month-to-date, Monthly endpoints
+        ├── context/
+        │   └── AuthContext.jsx        # User state, token, login, register, logout
+        ├── routes/
+        │   └── ProtectedRoute.jsx     # Route guard with session-loading spinner
+        ├── pages/
+        │   ├── Dashboard.jsx          # Today's 4 slots at a glance & quick add
+        │   ├── Readings.jsx           # Date picker, daily reading rows, CRUD modal
+        │   ├── Reports.jsx            # Date picker + tabs (Daily, MTD, Monthly)
+        │   ├── Login.jsx              # Sign-in with one-click demo credentials
+        │   ├── Register.jsx           # Sign-up form with input validations
+        │   └── NotFound.jsx           # 404 fallback page
+        ├── components/
+        │   ├── Navbar.jsx             # Top bar navigation & user profile
+        │   ├── DatePicker.jsx         # Accessible date selector with next/prev buttons
+        │   ├── ReadingForm.jsx        # Add/edit form with validations & slot indicators
+        │   ├── ReadingList.jsx        # Daily reading list & medical disclaimer
+        │   ├── ReadingRow.jsx         # Reading card with color hints (green/amber/red)
+        │   ├── ReportCard.jsx         # 4 stat tiles (Highest, Lowest, Average, Count)
+        │   ├── EmptyState.jsx         # Friendly empty state with CTA
+        │   ├── ErrorAlert.jsx         # Accessible error alert (aria-live)
+        │   └── Spinner.jsx            # Loading indicator
+        ├── constants/
+        │   └── slots.js               # Slots mappings & labels
+        ├── utils/
+        │   ├── dates.js               # Date formatting utilities
+        │   └── errors.js              # API error message extraction
+        └── styles/
+            └── index.css              # Tailwind CSS styling & animations
 ```
 
 ---
@@ -69,86 +118,82 @@ sweety/
 
 ### 1. Prerequisites
 - **Node.js**: v20+ LTS
-- **PostgreSQL**: 14+ or Docker Desktop
+- **PostgreSQL**: v14+ or Docker
 
-### 2. Database Setup (via Docker Compose)
-From the repository root:
+---
+
+### 2. Database Setup
+
+#### Option A: Using Docker Compose
 ```bash
 docker compose up -d db
 ```
-This spins up PostgreSQL 16 on port `5432` with user `sweety`, password `sweety`, and database `sweety`.
+This runs PostgreSQL 16 on port `5432` with user `sweety`, password `sweety`, and database `sweety`.
 
-Alternatively, use your local PostgreSQL installation:
+#### Option B: Local PostgreSQL Installation
 ```sql
 CREATE USER sweety WITH PASSWORD 'sweety';
 CREATE DATABASE sweety OWNER sweety;
 CREATE DATABASE sweety_test OWNER sweety;
 ```
 
-### 3. Server Setup
-```bash
-cd server
-npm install
-```
+---
 
-Copy the environment file (a pre-configured `.env` is already provided):
-```bash
-cp .env.example .env
-```
+### 3. Backend Setup & Run
 
-Run database migrations:
-```bash
-npm run migrate
-```
+1. Navigate to the `server/` directory:
+   ```bash
+   cd server
+   npm install
+   ```
 
-Seed initial demo data (idempotent):
-```bash
-npm run seed
-```
+2. Copy the environment file:
+   ```bash
+   cp .env.example .env
+   ```
 
-### 4. Running the Server
-```bash
-npm run dev
-```
-The server starts listening on `http://localhost:5000`.
+3. Run migrations and seed the database:
+   ```bash
+   npm run migrate
+   npm run seed
+   ```
 
-### 5. Running the Tests
-```bash
-npm test
-```
-To run tests with full coverage report:
-```bash
-npm run test:coverage
-```
-*Note: The test suite automatically runs seamlessly against the test database, or defaults to an in-memory database if an external instance is offline.*
+4. Start the backend API server:
+   ```bash
+   npm run dev
+   ```
+   *The API will start listening on `http://localhost:5000`.*
+
+5. Run Backend Tests:
+   ```bash
+   npm test
+   ```
+   *Runs all 42 automated integration and unit tests.*
 
 ---
 
-## Architectural Decisions & Core Rules
+### 4. Frontend Setup & Run
 
-1. **Layer Responsibilities:**
-   - **Routes**: Define path and middleware chains only.
-   - **Controllers**: Extract request parameters, invoke service, shape HTTP responses. Never contain SQL or business logic.
-   - **Services**: Enforce domain validation, ordering of rules, date checks, and transactional row locking. Throw `AppError`.
-   - **Repositories**: Encapsulate all database interaction using Knex query builder. Every query strictly enforces `user_id = req.user.id`.
-
-2. **Validation Order of Precedence:**
-   1. Value required and integer check (`Zod`).
-   2. Glucose range 40–600 mg/dl (`Zod` + DB `CHECK`).
-   3. Slot validity and date format (`Zod`).
-   4. Date cannot be in the future (compared against `APP_TIMEZONE` today).
-   5. Maximum 4 readings per day (evaluated inside user row lock).
-   6. Duplicate slot on selected date (evaluated inside user row lock + DB `UNIQUE`).
-
-3. **Concurrency & Race Condition Prevention:**
-   When adding or updating readings, a database transaction first locks the user row:
-   ```javascript
-   await trx('users').where({ id: userId }).forUpdate().first();
+1. In a separate terminal, navigate to the `client/` directory:
+   ```bash
+   cd client
+   npm install
    ```
-   This serializes simultaneous incoming requests per user, eliminating race conditions. If a concurrent clash slips past due to network jitter, PostgreSQL's `23505` constraint violation error is trapped and normalized into the standard `409 DUPLICATE_SLOT` response.
 
-4. **Timing Attack Protection:**
-   During authentication, when a user is not found, `bcrypt.compare` is still executed against a pre-computed dummy hash to prevent response-time differences from leaking email presence.
+2. Copy the environment file:
+   ```bash
+   cp .env.example .env
+   ```
 
-5. **Data Isolation:**
-   When attempting to access, edit, or delete another user's reading, the API responds with `404 NOT_FOUND` rather than `403 FORBIDDEN` to prevent resource ID enumeration.
+3. Start the Vite development server:
+   ```bash
+   npm run dev
+   ```
+   *The frontend will run at `http://localhost:5173`.*
+
+---
+
+## Demo Account Credentials
+- **Email:** `demo@sweety.app`
+- **Password:** `Demo@1234`
+*(A convenient "Auto-fill Demo" button is also present on the Login page).*
