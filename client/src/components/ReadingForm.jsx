@@ -28,7 +28,7 @@ export default function ReadingForm({
     }
   }, [initialData]);
 
-  // Client-side quick validation for responsive feedback
+  // Client-side quick validation for responsive feedback matching exact server messages
   const validate = () => {
     const errors = {};
     if (!date) {
@@ -41,11 +41,14 @@ export default function ReadingForm({
       errors.slot = 'Choose a valid time slot.';
     }
 
-    if (!value || value.trim() === '') {
+    const valStr = String(value).trim();
+    if (!value || valStr === '') {
       errors.value = 'Please enter a glucose value.';
     } else {
-      const num = Number(value);
-      if (isNaN(num) || !/^\d+$/.test(value.trim())) {
+      const num = Number(valStr);
+      if (isNaN(num) || !/^-?\d+(\.\d+)?$/.test(valStr)) {
+        errors.value = 'Please enter a glucose value.';
+      } else if (!Number.isInteger(num)) {
         errors.value = 'Value must be a whole number.';
       } else if (num < 40 || num > 600) {
         errors.value = 'Value must be between 40 and 600 mg/dl.';
@@ -187,7 +190,7 @@ export default function ReadingForm({
             type="button"
             onClick={onCancel}
             disabled={isSubmitting}
-            className="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors"
+            className="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
           >
             Cancel
           </button>

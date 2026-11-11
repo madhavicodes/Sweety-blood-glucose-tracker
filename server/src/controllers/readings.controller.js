@@ -28,3 +28,4 @@ class ReadingsController {
 }
 
 module.exports = new ReadingsController();
+

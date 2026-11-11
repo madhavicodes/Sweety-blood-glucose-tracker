@@ -23,3 +23,4 @@ export function getErrorMessage(error, fallback = 'An unexpected error occurred.
 export function getFieldErrors(error) {
   return error?.response?.data?.error?.fields || {};
 }
+

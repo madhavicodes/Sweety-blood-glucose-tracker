@@ -87,3 +87,4 @@ export default function DatePicker({ value, onChange, max }) {
     </div>
   );
 }
+

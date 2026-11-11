@@ -28,3 +28,4 @@ router.post('/login', authLimiter, validate(loginSchema), asyncHandler(authContr
 router.get('/me', requireAuth, asyncHandler(authController.me));
 
 module.exports = router;
+

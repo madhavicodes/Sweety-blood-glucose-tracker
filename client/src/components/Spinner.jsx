@@ -19,3 +19,4 @@ export default function Spinner({ size = 'md', text = 'Loading...' }) {
     </div>
   );
 }
+

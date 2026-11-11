@@ -22,3 +22,4 @@ module.exports = {
   SLOT_LABELS,
   SLOT_ORDER
 };
+

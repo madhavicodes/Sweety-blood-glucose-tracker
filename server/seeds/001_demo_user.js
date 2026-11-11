@@ -82,3 +82,4 @@ exports.seed = async function(knex) {
   console.log(`Readings seeded: ${readings.length}`);
   console.log('----------------------------------------------------');
 };
+

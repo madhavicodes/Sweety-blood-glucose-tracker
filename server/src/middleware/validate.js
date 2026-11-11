@@ -10,3 +10,4 @@ const validate = (schema, source = 'body') => async (req, res, next) => {
 };
 
 module.exports = validate;
+

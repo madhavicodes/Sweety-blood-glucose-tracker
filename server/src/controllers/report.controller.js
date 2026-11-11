@@ -18,3 +18,4 @@ class ReportController {
 }
 
 module.exports = new ReportController();
+

@@ -24,3 +24,4 @@ exports.down = async function(knex) {
   await knex.raw('DROP INDEX IF EXISTS users_email_lower_uidx');
   await knex.schema.dropTableIfExists('users');
 };
+

@@ -13,3 +13,4 @@ export const SLOT_ORDER = [
   'AFTER_LUNCH',
   'AFTER_DINNER'
 ];
+

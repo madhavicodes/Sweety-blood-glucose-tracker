@@ -8,3 +8,4 @@ const reportQuerySchema = z.object({
 module.exports = {
   reportQuerySchema
 };
+

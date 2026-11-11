@@ -33,3 +33,4 @@ class ReportRepository {
 }
 
 module.exports = new ReportRepository();
+

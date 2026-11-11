@@ -17,3 +17,4 @@ router.put('/:id', validate(readingBodySchema), asyncHandler(readingsController.
 router.delete('/:id', asyncHandler(readingsController.delete));
 
 module.exports = router;
+

@@ -180,3 +180,4 @@ class ReadingRepository {
 }
 
 module.exports = new ReadingRepository();
+
