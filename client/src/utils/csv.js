@@ -25,3 +25,4 @@ export function exportReadingsToCSV(readings, filename = 'glucose_readings.csv')
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
 }
+

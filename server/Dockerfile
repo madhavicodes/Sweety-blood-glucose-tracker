@@ -13,3 +13,4 @@ EXPOSE 5000
 
 # Run migrations and start API server
 CMD ["sh", "-c", "npx knex migrate:latest && node src/server.js"]
+

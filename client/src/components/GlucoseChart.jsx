@@ -116,3 +116,4 @@ export default function GlucoseChart({ data = [], title = 'Glucose Trends' }) {
     </div>
   );
 }
+
