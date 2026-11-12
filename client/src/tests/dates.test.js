@@ -19,3 +19,4 @@ describe('Frontend Date Utilities', () => {
     expect(formatDisplayDate('invalid')).toBe('invalid');
   });
 });
+

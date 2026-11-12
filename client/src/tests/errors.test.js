@@ -38,3 +38,4 @@ describe('Frontend Error Utilities', () => {
     expect(getFieldErrors(error)).toEqual({ value: 'Value must be between 40 and 600 mg/dl.' });
   });
 });
+
